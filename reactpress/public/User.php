@@ -95,7 +95,7 @@ class User {
 	 * Add the type="module" attribute to the script tag, for
 	 * ReactPress apps, to remove some errors with Vite.
 	 */
-	function add_type_module_to_scripts($tag, $handle, $src) {
+	function add_type_module_to_scripts(string $tag, string $handle, string $src): string {
         if (str_starts_with($handle, 'rp-react-app-asset')) {
           // Write the first JS as script and the rest (dependents) as modulepreload links
 		  if (str_ends_with($handle, '-0')) {
@@ -188,7 +188,9 @@ class User {
 				}
 
 				// deque styles and scripts
-				if (basename(get_page_template_slug($post)) === 'empty-react-page-template.php') {
+				$slug = get_page_template_slug($post);
+
+				if ($slug && basename($slug) === 'empty-react-page-template.php') {
 					foreach ($wp_styles->queue as $handle) {
 						if (!(str_starts_with($handle, 'rp-react-app-asset-'))) {
 							wp_dequeue_style($handle);
@@ -229,56 +231,71 @@ class User {
 		}
 	}
 
+	/**
+	 *
+	 * @param string $appname
+	 *
+	 * @return array<string[]>
+	 */
 	private function setup_vite_application_files(string $appname): array
 	{
-		$js_files = [];
-		$css_files = [];
+        $js_files = [];
+        $css_files = [];
 
-		$react_app_build = REPR_APPS_PATH . '/' . $appname . '/dist/assets';
-		$assets_files = scandir($react_app_build);
+        $react_app_build = REPR_APPS_PATH . '/' . $appname . '/dist/assets';
+        if (file_exists($react_app_build)) {
+            $assets_files = scandir($react_app_build);
 
-		if ($assets_files) {
-			$appAssetsUrl = Utils::app_url($appname) . '/dist/assets/';
+            if ($assets_files) {
+                $appAssetsUrl = Utils::app_url($appname) . '/dist/assets/';
 
-			// Filter down to the js files
-			$js_files = array_filter(
-				$assets_files,
-				fn ($file_string) => pathinfo($file_string, PATHINFO_EXTENSION) === 'js'
-				);
+                // Filter down to the js files
+                $js_files = array_filter(
+                    $assets_files,
+                    fn ($file_string) => pathinfo($file_string, PATHINFO_EXTENSION) === 'js'
+                    );
 
-			// Sort files so index*.js is first, followed by the other js files in sorted order
-			usort($js_files, function (string $a, string $b): int {
-				$result = 0;
+                // Sort files so index*.js is first, followed by the other js files in sorted order
+                usort($js_files, function (string $a, string $b): int {
+                    $result = 0;
 
-				if (0 === stripos($a, 'index')) {
-					$result = -1;
-				} elseif (0 === stripos($b, 'index')) {
-					$result = 1;
-				} elseif (0 === strpos($a, '@') && 0 === strpos($b, '@')) {
-					$result = strcmp($a, $b);
-				} elseif (0 === strpos($a, '@')) {
-					return 1;
-				} elseif (0 === strpos($b, '@')) {
-					return -1;
-				} else {
-					$result = strcmp($a, $b);
-				}
+                    if (0 === stripos($a, 'index')) {
+                        $result = -1;
+                    } elseif (0 === stripos($b, 'index')) {
+                        $result = 1;
+                    } elseif (0 === strpos($a, '@') && 0 === strpos($b, '@')) {
+                        $result = strcmp($a, $b);
+                    } elseif (0 === strpos($a, '@')) {
+                        return 1;
+                    } elseif (0 === strpos($b, '@')) {
+                        return -1;
+                    } else {
+                        $result = strcmp($a, $b);
+                    }
 
-				return $result;
-			});
+                    return $result;
+                });
 
-			// We use array_values to reindex the array (because PHP)
-			$js_files = array_map(fn ($file_name) => $appAssetsUrl . $file_name, array_values($js_files));
+    			// We use array_values to reindex the array (because PHP)
+	       		$js_files = array_map(fn ($file_name) => $appAssetsUrl . $file_name, $js_files);
 
-			$css_files = array_map(fn ($file_name) => $appAssetsUrl . $file_name, array_filter(
-				$assets_files,
-				fn ($file_string) => pathinfo($file_string, PATHINFO_EXTENSION) === 'css'
-				));
-		}
+                $css_files = array_map(fn ($file_name) => $appAssetsUrl . $file_name, array_filter(
+                    $assets_files,
+                    fn ($file_string) => pathinfo($file_string, PATHINFO_EXTENSION) === 'css'
+                    ));
+            }
+        }
 
-		return [$js_files, $css_files];
-	}
+        return [$js_files, $css_files];
+    }
 
+	/**
+	 *
+	 * @param string $appname
+	 * @throws \ErrorException
+	 *
+	 * @return array<string[]>
+	 */
 	private function setup_cra_application_files(string $appname): array
 	{
 		$js_files = [];
@@ -329,7 +346,7 @@ class User {
 		return [$js_files, $css_files];
 	}
 
-    /**
+	/**
 	 * Add new rewrite rules for every app to make react router usable.
 	 *
 	 * @since 1.4.0
@@ -349,10 +366,12 @@ class User {
 		foreach ($permalinks as $permalink) {
 			add_rewrite_rule(
 				'^' .
-					wp_make_link_relative($permalink) .
-					'/(.*)?',
+				// Trim leading and trailing slashes to get `^foo/bar/(.*)?` not `^/foo/bar//(.*)?`
+				trim(wp_make_link_relative($permalink), '/') .
+				'/(.*)?',
 				'index.php?pagename=' .
-					wp_make_link_relative($permalink),
+				// Trim leading and trailing slashes to get `index.php?pagename=foo/bar` not `index.php?pagename=/foo/bar/`
+				trim(wp_make_link_relative($permalink), '/'),
 				'top'
 			);
 		}

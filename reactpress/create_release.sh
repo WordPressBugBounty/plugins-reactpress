@@ -1,5 +1,5 @@
-version='3.3.0'
- 
+version='3.4.0'
+
 # We don't want a ton of dev dependencies in our release.
 composer install --no-dev --optimize-autoloader
 rm -r /tmp/reactpress-svn

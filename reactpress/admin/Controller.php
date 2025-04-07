@@ -141,7 +141,7 @@ class Controller {
    * @return int 0 if no success
    * @since 1.2.0
    */
-  public static function add_build_path($appname, $apptype = 'development_cra') {
+  public static function add_build_path(string $appname, string $apptype = 'development_cra'): int {
     $apppath = Utils::app_path($appname);
     // We need the relative path, that we can deploy our
     // built app to another server later.
@@ -184,6 +184,8 @@ class Controller {
         return 2;
       }
     }
+
+    return 0;
   }
 
   /**
@@ -195,17 +197,21 @@ class Controller {
    * @return string
    * @since 1.0.0
    */
-  public static function get_index_html_content(string $permalink, $apptype = 'development_cra', $appname = '') {
+  public static function get_index_html_content(string $permalink, string $apptype = 'development_cra', string $appname = ''): string {
     $resp = wp_remote_get($permalink, ['timeout' => 1000, 'cookies' => $_COOKIE]);
     $respCode = wp_remote_retrieve_response_code($resp);
 
     if (200 == $respCode) {
-      $file_contents = wp_remote_retrieve_body($resp);
-      $file_contents_arr = explode(PHP_EOL, $file_contents);
-      // filter all build assets out of the file, that they don't conflict
-      // with the dev assets.
-      $filtered_arr = array_filter($file_contents_arr, fn ($el) => !strpos($el, "id='rp-react-app-asset-"));
-      $filtered_contents =  implode(PHP_EOL, $filtered_arr);
+
+      $dom = new \DOMDocument();
+	    libxml_use_internal_errors(true);
+	    $dom->loadHTML(wp_remote_retrieve_body($resp));
+	    $selector = new \DOMXPath($dom);
+	    foreach ($selector->query('//*[starts-with(@id, "rp-react-app-asset-")]') as $node) {
+		    $node->parentNode->removeChild($node);
+	    }
+	    $filtered_contents = $dom->saveHTML();
+      
       // re-add script tag for global reactPress variable
       $readded_contents = str_replace('var reactPress', "<script>\nvar reactPress", $filtered_contents);
 
@@ -219,6 +225,8 @@ class Controller {
           $filtered_contents
         );
       }
+    } else {
+      $readded_contents = '';
     }
 
     return $readded_contents;
@@ -284,7 +292,16 @@ class Controller {
               throw new LengthException('Client-side routing is only possible on one single page.');
             }
             foreach ($el['pages'] as $page) {
-              add_rewrite_rule('^' . wp_make_link_relative($page['permalink']) . '/(.*)?', 'index.php?pagename=' . wp_make_link_relative($page['permalink']), 'top');
+              add_rewrite_rule(
+                '^' .
+                // Trim leading and trailing slashes to get `^foo/bar/(.*)?` not `^/foo/bar//(.*)?`
+                trim(wp_make_link_relative($page['permalink']), '/') .
+                '/(.*)?',
+                'index.php?pagename=' .
+                // Trim leading and trailing slashes to get `index.php?pagename=foo/bar` not `index.php?pagename=/foo/bar/`
+                trim(wp_make_link_relative($page['permalink']), '/'),
+                'top'
+              );
               Utils::set_public_url_for_dev_server($appname, $page['permalink']);
             }
             flush_rewrite_rules();
@@ -316,7 +333,7 @@ class Controller {
    * @param string $content
    * @since 1.0.0
    */
-  public static function write_index_html(string $appname, string $content, $apptype = 'development_cra') {
+  public static function write_index_html(string $appname, string $content, string $apptype = 'development_cra') {
     if ($apptype === 'development_vite') {
       $index_html_path = sprintf("%s/%s/index.html", REPR_APPS_PATH, $appname);
       return file_put_contents($index_html_path, $content);

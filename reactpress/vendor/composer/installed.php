@@ -3,7 +3,7 @@
         'name' => 'rockiger/reactpress',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => '5cf496945fc3741629be96ec9af05200a3bef645',
+        'reference' => '6c7f04e2785e8991fb633dd4c02f396288489f21',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'rockiger/reactpress' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => '5cf496945fc3741629be96ec9af05200a3bef645',
+            'reference' => '6c7f04e2785e8991fb633dd4c02f396288489f21',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

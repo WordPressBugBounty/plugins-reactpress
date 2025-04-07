@@ -2,13 +2,13 @@
 Contributors: rockiger
 Tags: react, embed, developer, javascript, js
 Requires at least: 5.0
-Tested up to: 6.6.2
+Tested up to: 6.7.2
 Requires PHP: 7.4
-Stable tag: 3.3.0
+Stable tag: 3.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Easily create, build and deploy React apps into your existing WordPress sites. 
+Easily create, build and deploy React apps into your existing WordPress sites.
 
 == Description ==
 
@@ -32,7 +32,7 @@ ReactPress does 3 things:
 * zero-config
 * TypeScript support
 
-=== Links === 
+=== Links ===
 * [Website](https://rockiger.com/en/reactpress/)
 * [Getting Started](https://rockiger.com/en/reactpress/getting-started/)
 * [In depth React with WordPress Tutorial](https://rockiger.com/en/reactpress/reactpress-tutorial/)
@@ -70,6 +70,13 @@ Upgrades should be smoothless.
 
 == Changelog ==
 
+= 3.4.0 =
+
+* Improved asset filtering (@dylanlawrence)
+* Check for asset folder (@BlairCooper)
+* Improve deep links (@bendiy)
+* Update packages (@BlairCooper)
+
 = 3.3.0 =
 
 * Recommend the user to use create-vite instead of create-react-app
@@ -77,7 +84,7 @@ Upgrades should be smoothless.
 * Fix: Namespacing for repr_log() - function
 * Fix: Only write build path and index.html if in dev mode
 
-= 3.2.2 = 
+= 3.2.2 =
 
 * Update the React dev environment even if the ReactPress app is on a private page. Thanks to @BlairCooper
 * Improve compatibility with non-standard WordPress configurations like Bedrock. Thanks to @dylanlawrence
@@ -96,12 +103,12 @@ Upgrades should be smoothless.
 = 3.1.0 =
 
  * Make sure that pages of all states (private, draft) are shown.
- * Improve user feedback when something goes wrong during index.html update. 
+ * Improve user feedback when something goes wrong during index.html update.
  * Don't write empty content to index.html if page download did not work.
  * Add css as late as possible to ReactPress page, to reduce `!important` in app's css.
  * Add information about the post into `reactPress` variable
  * Automatically update the app list without the need to reload the page
- 
+
 
 = 3.0.1 =
 
@@ -144,7 +151,7 @@ Upgrades should be smoothless.
 * Add post state label to signal the user a page was created by ReactPress
 * Test with WordPress 6.0.2
 
-= 1.3.2 = 
+= 1.3.2 =
 
 * Swap file_get_contents for wp_remote_get.
 
@@ -152,7 +159,7 @@ Upgrades should be smoothless.
 
 * If the folder of an app is deleted, it is shown as type: Orphan
 
-= 1.3.0 = 
+= 1.3.0 =
 
 * Move apps directory to wp-content/reactpress/apps to don't mess with the created app when updating the plugin.
 
@@ -164,7 +171,7 @@ Upgrades should be smoothless.
 
 * FIX: Problems if document root and plugin app directory are on the same machine/server/locationn
 
-= 1.2.0 = 
+= 1.2.0 =
 
 * Revamp the process of adding using ReactPress. Don't start the react app anymore, only update the `index.html` from WordPress admin. Make it possible to add apps manually with npm or yarn.
 
